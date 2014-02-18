@@ -6,20 +6,11 @@ OneWire ds = OneWire(A0);  // on pin 10 (a 4.7K resistor is necessary)
 
 byte addr[8];
 char resultstr[64];
-const unsigned long waittime = 10L * 60L * 1000L;  //10 min updates
-unsigned long wait = millis();
 
 void setup() {
 	Serial.begin(9600);
 	ds.init();
 	delay(1000);
-	
-	if ( !ds.search(addr)) {
-		Serial.println("No more addresses.");
-        while(1);
-	}
-	
-    Spark.variable("result", &resultstr, STRING); 
 }
 
 void loop() {
@@ -27,13 +18,9 @@ void loop() {
 	byte present = 0;
 	byte type_s = 0;
 	byte data[12];
-//	byte addr[8];
+	byte addr[8];
 	float celsius, fahrenheit;
 
-    if (millis() > wait) {
-        wait = millis() + waittime;
-
-/* 
 	if ( !ds.search(addr)) {
 		Serial.println("No more addresses.");
 		Serial.println();
@@ -72,7 +59,7 @@ void loop() {
 		Serial.println("Device is not a DS18x20 family device.");
 		return;
 	} 
-*/
+
 	ds.reset();
 	ds.select(addr);
 	ds.write(0x44, 1);        // start conversion, with parasite power on at the end
@@ -84,17 +71,17 @@ void loop() {
 	ds.select(addr);    
 	ds.write(0xBE);         // Read Scratchpad
 
-//	Serial.print("  Data = ");
-//	Serial.print(present, HEX);
-//	Serial.print(" ");
+	Serial.print("  Data = ");
+	Serial.print(present, HEX);
+	Serial.print(" ");
 	for ( i = 0; i < 9; i++) {           // we need 9 bytes
 		data[i] = ds.read();
-//		Serial.print(data[i], HEX);
-//		Serial.print(" ");
+		Serial.print(data[i], HEX);
+		Serial.print(" ");
 	}
-//	Serial.print(" CRC=");
-//	Serial.print(OneWire::crc8(data, 8), HEX);
-//	Serial.println();
+	Serial.print(" CRC=");
+	Serial.print(OneWire::crc8(data, 8), HEX);
+	Serial.println();
 
 	// Convert the data to actual temperature
 	// because the result is a 16 bit signed integer, it should
@@ -118,10 +105,10 @@ void loop() {
 	celsius = (float)raw / 16.0;
 	fahrenheit = celsius * 1.8 + 32.0;
 	sprintf(resultstr, "{\"data1\":%3.2f,\"data2\":%3.2f}", celsius, fahrenheit);
-//	Serial.print("  Temperature = ");
-//	Serial.print(celsius);
-//	Serial.print(" Celsius, ");
-//	Serial.print(fahrenheit);
-//	Serial.println(" Fahrenheit");
-    }
+	Serial.print("  Temperature = ");
+	Serial.print(celsius);
+	Serial.print(" Celsius, ");
+	Serial.print(fahrenheit);
+	Serial.println(" Fahrenheit");
+	delay(2000);
 }
